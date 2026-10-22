@@ -69,13 +69,13 @@ The project follows the 16 questions provided for the assignment:
 5. If using the MySQL command-line client, move to the folder containing the SQL file and run:
 
    ```sql
-   SOURCE /full/path/to/University_Course_Management_System_MySQL.sql;
+   SOURCE D:\final project sql\University_Course_Management_System_MySQL.sql;
    ```
 
    Replace `/full/path/to/` with the actual path to your file. On Windows, use the actual Windows path, for example:
 
    ```sql
-   SOURCE C:/Users/YourName/Desktop/University_Course_Management_System_MySQL.sql;
+   SOURCE D:\final project sql\University_Course_Management_System_MySQL.sql;
    ```
 
 ## Output and Reasons File
