@@ -1,0 +1,465 @@
+UNIVERSITY COURSE MANAGEMENT SYSTEM
+
+======================================================================================
+QUESTION 1
+Perform CRUD Operations on all tables.
+
+SQL / OPERATIONS:
+The supplied SQL file runs CRUD tests for Departments, Students, Courses, Instructors
+and Enrollments. For each table it performs:
+  INSERT  -> add a temporary test row
+  SELECT  -> display that test row
+  UPDATE  -> change a value in that row
+  DELETE  -> delete the test row
+
+output :
++--------------+------------------------+
+| DepartmentID | DepartmentName         |
++--------------+------------------------+
+|           99 | Temporary Department   |
++--------------+------------------------+
+1 row in set
+
+REASON:
+CRUD means Create, Read, Update and Delete. INSERT creates a record, SELECT reads it,
+UPDATE modifies it, and DELETE removes it. The script uses START TRANSACTION and
+ROLLBACK so the temporary test data is undone at the end. The foreign-key relationships
+are respected by the sample test records.
+
+======================================================================================
+QUESTION 2
+Retrieve students who enrolled after 2022.
+
+SQL QUERY:
+SELECT *
+FROM Students
+WHERE EnrollmentDate >= '2023-01-01';
+
+OUTPUT:
++-----------+-----------+----------+-----------------------+------------+----------------+
+| StudentID | FirstName | LastName | Email                 | BirthDate  | EnrollmentDate |
++-----------+-----------+----------+-----------------------+------------+----------------+
+| 3         | Amit      | Patel    | amit.patel@email.com  | 2002-03-10 | 2023-07-15     |
+| 4         | Sara      | Khan     | sara.khan@email.com   | 2001-11-20 | 2024-08-01     |
+| 6         | Priya     | Mehta    | priya.mehta@email.com | 2003-02-14 | 2025-08-01     |
+| 9         | Mina      | Desai    | mina.desai@email.com  | 2004-04-18 | 2023-08-10     |
+| 11        | Isha      | Rao      | isha.rao@email.com    | 2003-10-12 | 2024-07-15     |
++-----------+-----------+----------+-----------------------+------------+----------------+
+5 row(s) in set
+
+REASON:
+WHERE EnrollmentDate >= '2023-01-01' returns students enrolled from 1 January 2023 onward. The date is inclusive, so students enrolled during 2023 are included.
+
+======================================================================================
+QUESTION 3
+Retrieve courses offered by the Mathematics department with a limit of 5 courses.
+
+SQL QUERY:
+SELECT c.CourseID, c.CourseName, c.DepartmentID, c.Credits
+FROM Courses AS c
+JOIN Departments AS d ON d.DepartmentID = c.DepartmentID
+WHERE d.DepartmentName = 'Mathematics'
+LIMIT 5;
+
+OUTPUT:
++----------+------------+--------------+---------+
+| CourseID | CourseName | DepartmentID | Credits |
++----------+------------+--------------+---------+
+| 103      | Calculus   | 2            | 4       |
+| 104      | Statistics | 2            | 3       |
++----------+------------+--------------+---------+
+2 row(s) in set
+
+REASON:
+JOIN links each course to its department. The WHERE condition selects Mathematics, and LIMIT 5 returns no more than five matching courses. This sample has two Mathematics courses.
+
+======================================================================================
+QUESTION 4
+Get the number of students enrolled in each course, filtering for courses with more than 5 students.
+
+SQL QUERY:
+SELECT c.CourseID, c.CourseName, COUNT(DISTINCT e.StudentID) AS StudentCount
+FROM Courses AS c
+JOIN Enrollments AS e ON e.CourseID = c.CourseID
+GROUP BY c.CourseID, c.CourseName
+HAVING COUNT(DISTINCT e.StudentID) > 5;
+
+MYSQL-STYLE OUTPUT:
++----------+---------------------+--------------+
+| CourseID | CourseName          | StudentCount |
++----------+---------------------+--------------+
+| 101      | Introduction to SQL | 12           |
++----------+---------------------+--------------+
+1 row(s) in set
+
+REASON:
+COUNT(DISTINCT e.StudentID) counts unique students per course. GROUP BY creates a separate result for each course, and HAVING filters the groups to courses with more than five students.
+
+======================================================================================
+QUESTION 5
+Find students who are enrolled in both Introduction to SQL and Data Structures.
+
+SQL QUERY:
+SELECT s.StudentID, s.FirstName, s.LastName
+FROM Students AS s
+JOIN Enrollments AS e ON e.StudentID = s.StudentID
+JOIN Courses AS c ON c.CourseID = e.CourseID
+WHERE c.CourseName IN ('Introduction to SQL', 'Data Structures')
+GROUP BY s.StudentID, s.FirstName, s.LastName
+HAVING COUNT(DISTINCT c.CourseName) = 2;
+
+OUTPUT:
++-----------+-----------+----------+
+| StudentID | FirstName | LastName |
++-----------+-----------+----------+
+| 1         | John      | Doe      |
+| 2         | Jane      | Smith    |
+| 3         | Amit      | Patel    |
++-----------+-----------+----------+
+3 row(s) in set
+
+REASON:
+The query groups each student's enrollments and requires two distinct course names. Therefore, only students enrolled in both Introduction to SQL and Data Structures are returned.
+
+======================================================================================
+QUESTION 6
+Find students who are either enrolled in Introduction to SQL or Data Structures.
+
+SQL QUERY:
+SELECT DISTINCT s.StudentID, s.FirstName, s.LastName
+FROM Students AS s
+JOIN Enrollments AS e ON e.StudentID = s.StudentID
+JOIN Courses AS c ON c.CourseID = e.CourseID
+WHERE c.CourseName IN ('Introduction to SQL', 'Data Structures');
+
+OUTPUT:
++-----------+-----------+----------+
+| StudentID | FirstName | LastName |
++-----------+-----------+----------+
+| 1         | John      | Doe      |
+| 2         | Jane      | Smith    |
+| 3         | Amit      | Patel    |
+| 4         | Sara      | Khan     |
+| 5         | Ravi      | Shah     |
+| 6         | Priya     | Mehta    |
+| 7         | Neha      | Joshi    |
+| 8         | Arjun     | Verma    |
+| 9         | Mina      | Desai    |
+| 10        | Kabir     | Singh    |
+| 11        | Isha      | Rao      |
+| 12        | Dev       | Joshi    |
++-----------+-----------+----------+
+12 row(s) in set
+
+REASON:
+IN selects students enrolled in either of the two named courses. DISTINCT ensures each student appears only once even if they are enrolled in both.
+
+======================================================================================
+QUESTION 7
+Calculate the average number of credits for all courses.
+
+SQL QUERY:
+SELECT AVG(Credits) AS AverageCredits
+FROM Courses;
+
+OUTPUT:
++----------------+
+| AverageCredits |
++----------------+
+| 3.5            |
++----------------+
+1 row(s) in set
+
+REASON:
+AVG(Credits) calculates the mean credits across all course records. The four course credit values are 3, 4, 4 and 3, so the average is 3.5.
+
+======================================================================================
+QUESTION 8
+Find the maximum salary of instructors in the Computer Science department.
+
+SQL QUERY:
+SELECT MAX(i.Salary) AS MaximumSalary
+FROM Instructors AS i
+JOIN Departments AS d ON d.DepartmentID = i.DepartmentID
+WHERE d.DepartmentName = 'Computer Science';
+
+OUTPUT:
++---------------+
+| MaximumSalary |
++---------------+
+| 92000         |
++---------------+
+1 row(s) in set
+
+REASON:
+MAX(Salary) returns the highest instructor salary after joining instructors to departments and filtering for Computer Science.
+
+======================================================================================
+QUESTION 9
+Count the number of students enrolled in each department.
+
+SQL QUERY:
+SELECT d.DepartmentID, d.DepartmentName,
+       COUNT(DISTINCT e.StudentID) AS StudentCount
+FROM Departments AS d
+LEFT JOIN Courses AS c ON c.DepartmentID = d.DepartmentID
+LEFT JOIN Enrollments AS e ON e.CourseID = c.CourseID
+GROUP BY d.DepartmentID, d.DepartmentName;
+
+OUTPUT:
++--------------+------------------+--------------+
+| DepartmentID | DepartmentName   | StudentCount |
++--------------+------------------+--------------+
+| 1            | Computer Science | 12           |
+| 2            | Mathematics      | 3            |
++--------------+------------------+--------------+
+2 row(s) in set
+
+REASON:
+LEFT JOIN keeps every department in the output, even if it has no matching course or enrollment. COUNT(DISTINCT e.StudentID) counts each student once per department.
+
+======================================================================================
+QUESTION 10
+INNER JOIN: Retrieve students and their corresponding courses.
+
+SQL QUERY:
+SELECT s.StudentID, s.FirstName, s.LastName, c.CourseName, e.EnrollmentDate
+FROM Students AS s
+INNER JOIN Enrollments AS e ON e.StudentID = s.StudentID
+INNER JOIN Courses AS c ON c.CourseID = e.CourseID
+ORDER BY s.StudentID, c.CourseName;
+
+OUTPUT:
++-----------+-----------+----------+---------------------+----------------+
+| StudentID | FirstName | LastName | CourseName          | EnrollmentDate |
++-----------+-----------+----------+---------------------+----------------+
+| 1         | John      | Doe      | Data Structures     | 2022-08-05     |
+| 1         | John      | Doe      | Introduction to SQL | 2022-08-01     |
+| 2         | Jane      | Smith    | Data Structures     | 2021-08-05     |
+| 2         | Jane      | Smith    | Introduction to SQL | 2021-08-01     |
+| 3         | Amit      | Patel    | Data Structures     | 2023-07-20     |
+| 3         | Amit      | Patel    | Introduction to SQL | 2023-07-15     |
+| 4         | Sara      | Khan     | Calculus            | 2024-08-05     |
+| 4         | Sara      | Khan     | Introduction to SQL | 2024-08-01     |
+| 5         | Ravi      | Shah     | Calculus            | 2020-08-05     |
+| 5         | Ravi      | Shah     | Introduction to SQL | 2020-08-01     |
+| 6         | Priya     | Mehta    | Introduction to SQL | 2025-08-01     |
+| 6         | Priya     | Mehta    | Statistics          | 2025-08-05     |
+| 7         | Neha      | Joshi    | Introduction to SQL | 2022-07-20     |
+| 8         | Arjun     | Verma    | Introduction to SQL | 2021-07-25     |
+| 9         | Mina      | Desai    | Introduction to SQL | 2023-08-10     |
+| 10        | Kabir     | Singh    | Introduction to SQL | 2019-08-01     |
+| 11        | Isha      | Rao      | Introduction to SQL | 2024-07-15     |
+| 12        | Dev       | Joshi    | Introduction to SQL | 2022-08-15     |
++-----------+-----------+----------+---------------------+----------------+
+18 row(s) in set
+
+REASON:
+INNER JOIN returns only rows where matching records exist in Students, Enrollments and Courses. Students without an enrollment are not included.
+
+======================================================================================
+QUESTION 11
+LEFT JOIN: Retrieve all students and their corresponding courses, if any.
+
+SQL QUERY:
+SELECT s.StudentID, s.FirstName, s.LastName, c.CourseName
+FROM Students AS s
+LEFT JOIN Enrollments AS e ON e.StudentID = s.StudentID
+LEFT JOIN Courses AS c ON c.CourseID = e.CourseID
+ORDER BY s.StudentID, c.CourseName;
+
+OUTPUT:
++-----------+-----------+----------+---------------------+
+| StudentID | FirstName | LastName | CourseName          |
++-----------+-----------+----------+---------------------+
+| 1         | John      | Doe      | Data Structures     |
+| 1         | John      | Doe      | Introduction to SQL |
+| 2         | Jane      | Smith    | Data Structures     |
+| 2         | Jane      | Smith    | Introduction to SQL |
+| 3         | Amit      | Patel    | Data Structures     |
+| 3         | Amit      | Patel    | Introduction to SQL |
+| 4         | Sara      | Khan     | Calculus            |
+| 4         | Sara      | Khan     | Introduction to SQL |
+| 5         | Ravi      | Shah     | Calculus            |
+| 5         | Ravi      | Shah     | Introduction to SQL |
+| 6         | Priya     | Mehta    | Introduction to SQL |
+| 6         | Priya     | Mehta    | Statistics          |
+| 7         | Neha      | Joshi    | Introduction to SQL |
+| 8         | Arjun     | Verma    | Introduction to SQL |
+| 9         | Mina      | Desai    | Introduction to SQL |
+| 10        | Kabir     | Singh    | Introduction to SQL |
+| 11        | Isha      | Rao      | Introduction to SQL |
+| 12        | Dev       | Joshi    | Introduction to SQL |
++-----------+-----------+----------+---------------------+
+18 row(s) in set
+
+REASON:
+LEFT JOIN keeps all students. If a student has no enrollment, the course name is shown as NULL rather than removing that student from the result.
+
+======================================================================================
+QUESTION 12
+Subquery: Find students enrolled in courses that have more than 10 students.
+
+SQL QUERY:
+SELECT DISTINCT s.StudentID, s.FirstName, s.LastName
+FROM Students AS s
+JOIN Enrollments AS e ON e.StudentID = s.StudentID
+WHERE e.CourseID IN (
+    SELECT e2.CourseID
+    FROM Enrollments AS e2
+    GROUP BY e2.CourseID
+    HAVING COUNT(DISTINCT e2.StudentID) > 10
+);
+
+OUTPUT:
++-----------+-----------+----------+
+| StudentID | FirstName | LastName |
++-----------+-----------+----------+
+| 1         | John      | Doe      |
+| 2         | Jane      | Smith    |
+| 3         | Amit      | Patel    |
+| 4         | Sara      | Khan     |
+| 5         | Ravi      | Shah     |
+| 6         | Priya     | Mehta    |
+| 7         | Neha      | Joshi    |
+| 8         | Arjun     | Verma    |
+| 9         | Mina      | Desai    |
+| 10        | Kabir     | Singh    |
+| 11        | Isha      | Rao      |
+| 12        | Dev       | Joshi    |
++-----------+-----------+----------+
+12 row(s) in set
+
+REASON:
+The subquery finds course IDs with more than 10 distinct enrolled students. The outer query returns students enrolled in those courses; DISTINCT removes duplicate students.
+
+======================================================================================
+QUESTION 13
+Extract the year from the EnrollmentDate of students.
+
+SQL QUERY:
+SELECT StudentID, FirstName, LastName,
+       YEAR(EnrollmentDate) AS EnrollmentYear
+FROM Students;
+
+OUTPUT:
++-----------+-----------+----------+----------------+
+| StudentID | FirstName | LastName | EnrollmentYear |
++-----------+-----------+----------+----------------+
+| 1         | John      | Doe      | 2022           |
+| 2         | Jane      | Smith    | 2021           |
+| 3         | Amit      | Patel    | 2023           |
+| 4         | Sara      | Khan     | 2024           |
+| 5         | Ravi      | Shah     | 2020           |
+| 6         | Priya     | Mehta    | 2025           |
+| 7         | Neha      | Joshi    | 2022           |
+| 8         | Arjun     | Verma    | 2021           |
+| 9         | Mina      | Desai    | 2023           |
+| 10        | Kabir     | Singh    | 2019           |
+| 11        | Isha      | Rao      | 2024           |
+| 12        | Dev       | Joshi    | 2022           |
++-----------+-----------+----------+----------------+
+12 row(s) in set
+
+REASON:
+YEAR(EnrollmentDate) extracts only the year portion from each student's EnrollmentDate.
+
+======================================================================================
+QUESTION 14
+Concatenate the instructor's first and last name.
+
+SQL QUERY:
+SELECT InstructorID,
+       CONCAT(FirstName, ' ', LastName) AS InstructorFullName
+FROM Instructors;
+
+OUTPUT:
++--------------+--------------------+
+| InstructorID | InstructorFullName |
++--------------+--------------------+
+| 1            | Alice Johnson      |
+| 2            | Bob Lee            |
+| 3            | Carlos Miller      |
+| 4            | Divya Patel        |
++--------------+--------------------+
+4 row(s) in set
+
+REASON:
+CONCAT(FirstName, ' ', LastName) combines the instructor's first and last names with a space between them.
+
+======================================================================================
+QUESTION 15
+Calculate the running total of students enrolled in courses.
+
+SQL QUERY:
+SELECT EnrollmentID, StudentID, CourseID, EnrollmentDate,
+       COUNT(*) OVER (
+           ORDER BY EnrollmentDate, EnrollmentID
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS RunningEnrollmentTotal
+FROM Enrollments
+ORDER BY EnrollmentDate, EnrollmentID;
+
+OUTPUT:
++--------------+-----------+----------+----------------+------------------------+
+| EnrollmentID | StudentID | CourseID | EnrollmentDate | RunningEnrollmentTotal |
++--------------+-----------+----------+----------------+------------------------+
+| 10           | 10        | 101      | 2019-08-01     | 1                      |
+| 5            | 5         | 101      | 2020-08-01     | 2                      |
+| 17           | 5         | 103      | 2020-08-05     | 3                      |
+| 8            | 8         | 101      | 2021-07-25     | 4                      |
+| 2            | 2         | 101      | 2021-08-01     | 5                      |
+| 14           | 2         | 102      | 2021-08-05     | 6                      |
+| 7            | 7         | 101      | 2022-07-20     | 7                      |
+| 1            | 1         | 101      | 2022-08-01     | 8                      |
+| 13           | 1         | 102      | 2022-08-05     | 9                      |
+| 12           | 12        | 101      | 2022-08-15     | 10                     |
+| 3            | 3         | 101      | 2023-07-15     | 11                     |
+| 15           | 3         | 102      | 2023-07-20     | 12                     |
+| 9            | 9         | 101      | 2023-08-10     | 13                     |
+| 11           | 11        | 101      | 2024-07-15     | 14                     |
+| 4            | 4         | 101      | 2024-08-01     | 15                     |
+| 16           | 4         | 103      | 2024-08-05     | 16                     |
+| 6            | 6         | 101      | 2025-08-01     | 17                     |
+| 18           | 6         | 104      | 2025-08-05     | 18                     |
++--------------+-----------+----------+----------------+------------------------+
+18 row(s) in set
+
+REASON:
+COUNT(*) OVER (...) calculates a running count while keeping each enrollment row visible. Ordering by EnrollmentDate and EnrollmentID makes the cumulative total consistent.
+
+======================================================================================
+QUESTION 16
+Label students as Senior or Junior based on their year of enrollment.
+
+SQL QUERY:
+SELECT StudentID, FirstName, LastName, EnrollmentDate,
+       CASE
+           WHEN EnrollmentDate < DATE_SUB(CURDATE(), INTERVAL 4 YEAR)
+               THEN 'Senior'
+           ELSE 'Junior'
+       END AS StudentLevel
+FROM Students
+ORDER BY StudentID;
+
+OUTPUT:
++-----------+-----------+----------+----------------+--------------+
+| StudentID | FirstName | LastName | EnrollmentDate | StudentLevel |
++-----------+-----------+----------+----------------+--------------+
+| 1         | John      | Doe      | 2022-08-01     | Senior       |
+| 2         | Jane      | Smith    | 2021-08-01     | Senior       |
+| 3         | Amit      | Patel    | 2023-07-15     | Junior       |
+| 4         | Sara      | Khan     | 2024-08-01     | Junior       |
+| 5         | Ravi      | Shah     | 2020-08-01     | Senior       |
+| 6         | Priya     | Mehta    | 2025-08-01     | Junior       |
+| 7         | Neha      | Joshi    | 2022-07-20     | Senior       |
+| 8         | Arjun     | Verma    | 2021-07-25     | Senior       |
+| 9         | Mina      | Desai    | 2023-08-10     | Junior       |
+| 10        | Kabir     | Singh    | 2019-08-01     | Senior       |
+| 11        | Isha      | Rao      | 2024-07-15     | Junior       |
+| 12        | Dev       | Joshi    | 2022-08-15     | Senior       |
++-----------+-----------+----------+----------------+--------------+
+12 row(s) in set
+
+REASON:
+CASE checks whether EnrollmentDate is earlier than the date four years before CURDATE(). If it is, the student is labelled Senior; otherwise, Junior. The result depends on the date when the query is run.
